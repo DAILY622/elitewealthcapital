@@ -102,6 +102,7 @@ def user_dashboard(request):
     total_balance = user.balance
     total_earnings_lifetime = user.total_earnings
     referral_earnings = user.referral_bonus
+    referral_count = user.referrals.count()  # Count of users referred
     
     context = {
         'user': user,
@@ -110,6 +111,7 @@ def user_dashboard(request):
         'total_earnings': total_earnings,
         'total_earnings_lifetime': total_earnings_lifetime,
         'referral_earnings': referral_earnings,
+        'referral_count': referral_count,
         'roi_percentage': round(roi_percentage, 2),
         'active_count': active_count,
         'pending_withdrawals': pending_withdrawals,

@@ -1,0 +1,213 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Buy Shares - Elite Wealth Capital{% endblock %}
+
+{% block extra_css %}
+<style>
+    .sector-header {
+        background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        padding: 60px 0;
+        text-align: center;
+        color: white;
+        margin-bottom: 40px;
+    }
+    
+    .sector-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 15px;
+    }
+    
+    .sector-header p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        max-width: 700px;
+        margin: 0 auto;
+    }
+    
+    .plan-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 25px;
+        margin-top: 30px;
+    }
+    
+    .plan-card {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+    
+    .plan-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        border-color: #3b82f6;
+    }
+    
+    .plan-icon {
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: white;
+        margin-bottom: 20px;
+    }
+    
+    .plan-name {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #0A1F44;
+        margin-bottom: 10px;
+    }
+    
+    .plan-roi {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #3b82f6;
+        margin: 15px 0;
+    }
+    
+    .plan-roi span {
+        font-size: 0.9rem;
+        color: #666;
+    }
+    
+    .plan-details {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 10px;
+        margin: 20px 0;
+    }
+    
+    .plan-detail-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .plan-detail-row:last-child {
+        border-bottom: none;
+    }
+    
+    .plan-detail-label {
+        color: #666;
+        font-size: 0.9rem;
+    }
+    
+    .plan-detail-value {
+        font-weight: 600;
+        color: #0A1F44;
+    }
+    
+    .btn-buy-shares {
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-buy-shares:hover {
+        transform: scale(1.02);
+        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+    }
+    
+    .no-plans {
+        text-align: center;
+        padding: 60px 20px;
+        color: #666;
+    }
+    
+    .no-plans i {
+        font-size: 4rem;
+        color: #3b82f6;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="topbar">
+    <div class="topbar-title">
+        <h1><i class="fas fa-chart-line me-2"></i>{{ sector_title }}</h1>
+        <p>{{ sector_subtitle }}</p>
+    </div>
+    <a href="{% url 'dashboard:dashboard' %}" class="btn-outline">
+        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+    </a>
+</div>
+
+<div class="sector-header">
+    <div class="container">
+        <h1><i class="fas fa-chart-line me-3"></i>{{ sector_title }}</h1>
+        <p>{{ sector_description }}</p>
+    </div>
+</div>
+
+<div class="container mb-5">
+    {% if plans %}
+        <div class="plan-grid">
+            {% for plan in plans %}
+                <div class="plan-card">
+                    <div class="plan-icon">
+                        <i class="fas {{ plan.icon|default:'fa-chart-line' }}"></i>
+                    </div>
+                    
+                    <div class="plan-name">{{ plan.name }}</div>
+                    
+                    <div class="plan-roi">
+                        {{ plan.daily_roi }}%
+                        <span>Daily Returns</span>
+                    </div>
+                    
+                    <div class="plan-details">
+                        <div class="plan-detail-row">
+                            <span class="plan-detail-label">Minimum Investment</span>
+                            <span class="plan-detail-value">${{ plan.min_amount|floatformat:0|intcomma }}</span>
+                        </div>
+                        <div class="plan-detail-row">
+                            <span class="plan-detail-label">Maximum Investment</span>
+                            <span class="plan-detail-value">${{ plan.max_amount|floatformat:0|intcomma }}</span>
+                        </div>
+                        <div class="plan-detail-row">
+                            <span class="plan-detail-label">Duration</span>
+                            <span class="plan-detail-value">{{ plan.duration_days }} Days</span>
+                        </div>
+                        <div class="plan-detail-row">
+                            <span class="plan-detail-label">Total Return</span>
+                            <span class="plan-detail-value" style="color: #10b981;">{{ plan.total_roi }}%</span>
+                        </div>
+                    </div>
+                    
+                    <a href="{% url 'investments:invest' plan.id %}" class="btn-buy-shares">
+                        <i class="fas fa-shopping-cart me-2"></i>Buy Shares Now
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="no-plans">
+            <i class="fas fa-inbox"></i>
+            <h3>No Share Plans Available</h3>
+            <p>Stock investment plans are not currently available. Please check back later or explore our other investment options.</p>
+            <a href="{% url 'investments:plans' %}" class="btn btn-primary mt-3">
+                <i class="fas fa-list me-2"></i>View All Plans
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

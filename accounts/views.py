@@ -284,6 +284,31 @@ def edit_profile(request):
             user.email = new_email
             user.phone = request.POST.get('phone', user.phone)
             user.country = request.POST.get('country', user.country)
+            
+            # Handle profile image upload
+            if 'profile_image' in request.FILES:
+                profile_image = request.FILES['profile_image']
+                
+                # Validate file size (max 5MB)
+                if profile_image.size > 5 * 1024 * 1024:
+                    messages.error(request, 'Profile image must be less than 5MB')
+                    return redirect(f'accounts:edit_profile?tab={active_tab}')
+                
+                # Validate file type
+                allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+                if profile_image.content_type not in allowed_types:
+                    messages.error(request, 'Please upload a valid image (JPEG, PNG, or WebP)')
+                    return redirect(f'accounts:edit_profile?tab={active_tab}')
+                
+                # Delete old profile image if exists
+                if user.profile_image:
+                    try:
+                        user.profile_image.delete(save=False)
+                    except:
+                        pass  # If deletion fails, continue
+                
+                user.profile_image = profile_image
+            
             user.save()
             ActivityLog.objects.create(user=user, action='profile_updated')
             messages.success(request, 'Personal details updated successfully.')

@@ -6,6 +6,7 @@ app_name = 'investments'
 urlpatterns = [
     path('plans/', views.plans_list, name='plans'),
     path('sectors/<str:sector>/', views.sector_page, name='sector'),
+    path('buy-shares/', views.buy_shares, name='buy_shares'),
     path('invest/<int:plan_id>/', views.create_investment, name='invest'),
     path('my-investments/', views.my_investments, name='my_investments'),
     path('deposit/', views.deposit_view, name='deposit'),

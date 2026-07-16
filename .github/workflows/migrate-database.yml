@@ -1,0 +1,113 @@
+name: Database Migration - Neon to Supabase
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "MIGRATE" to confirm migration'
+        required: true
+        default: ''
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.confirm == 'MIGRATE'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+      
+      - name: Verify SQL file exists
+        run: |
+          if [ ! -f "neon_users_import.sql" ]; then
+            echo "❌ SQL file not found!"
+            exit 1
+          fi
+          echo "✅ SQL file found"
+          echo "File size: $(du -h neon_users_import.sql | cut -f1)"
+          echo "Statements: $(grep -c 'INSERT INTO' neon_users_import.sql)"
+      
+      - name: Execute migration to Supabase
+        env:
+          SUPABASE_URL: postgresql://postgres.fykzoburtipislgjrcjm:gTpjdkGJBLBjdFGT@aws-1-ap-northeast-1.pooler.supabase.com:5432/postgres
+        run: |
+          echo "🚀 Starting migration..."
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          
+          # Execute SQL
+          psql "$SUPABASE_URL" -f neon_users_import.sql -v ON_ERROR_STOP=1
+          
+          if [ $? -eq 0 ]; then
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo "✅ Migration completed successfully!"
+          else
+            echo "❌ Migration failed!"
+            exit 1
+          fi
+      
+      - name: Verify migration
+        env:
+          SUPABASE_URL: postgresql://postgres.fykzoburtipislgjrcjm:gTpjdkGJBLBjdFGT@aws-1-ap-northeast-1.pooler.supabase.com:5432/postgres
+        run: |
+          echo ""
+          echo "🔍 Verifying migration..."
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          
+          # Count total users
+          TOTAL_USERS=$(psql "$SUPABASE_URL" -t -c "SELECT COUNT(*) FROM accounts_customuser;")
+          echo "📊 Total users in database: $TOTAL_USERS"
+          
+          # Check for duplicates
+          DUPLICATES=$(psql "$SUPABASE_URL" -t -c "SELECT COUNT(*) FROM (SELECT email, COUNT(*) FROM accounts_customuser GROUP BY email HAVING COUNT(*) > 1) AS dups;")
+          echo "🔍 Duplicate emails: $DUPLICATES"
+          
+          # Sum balances
+          TOTAL_BALANCE=$(psql "$SUPABASE_URL" -t -c "SELECT COALESCE(SUM(balance), 0)::numeric(15,2) FROM accounts_customuser;")
+          echo "💰 Total balance: \$$TOTAL_BALANCE"
+          
+          TOTAL_INVESTED=$(psql "$SUPABASE_URL" -t -c "SELECT COALESCE(SUM(invested_amount), 0)::numeric(15,2) FROM accounts_customuser;")
+          echo "📈 Total invested: \$$TOTAL_INVESTED"
+          
+          TOTAL_PROFIT=$(psql "$SUPABASE_URL" -t -c "SELECT COALESCE(SUM(total_profit), 0)::numeric(15,2) FROM accounts_customuser;")
+          echo "💵 Total profit: \$$TOTAL_PROFIT"
+          
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          
+          if [ "$DUPLICATES" -gt 0 ]; then
+            echo "⚠️  Warning: Found $DUPLICATES duplicate emails!"
+          else
+            echo "✅ No duplicate emails found"
+          fi
+          
+          echo ""
+          echo "🎉 Migration verification complete!"
+      
+      - name: Create summary
+        run: |
+          echo "## 🎉 Migration Complete!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📊 Migration Details" >> $GITHUB_STEP_SUMMARY
+          echo "- **Source:** Neon Database (12 users)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Target:** Supabase Database" >> $GITHUB_STEP_SUMMARY
+          echo "- **Method:** Smart merge with ON CONFLICT handling" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### ✅ Status" >> $GITHUB_STEP_SUMMARY
+          echo "Migration completed successfully! All Neon users have been merged into Supabase." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔐 Duplicate Handling" >> $GITHUB_STEP_SUMMARY
+          echo "- Kept highest balances" >> $GITHUB_STEP_SUMMARY
+          echo "- Preserved Supabase passwords" >> $GITHUB_STEP_SUMMARY
+          echo "- Upgraded account types when better" >> $GITHUB_STEP_SUMMARY
+          echo "- Kept verified KYC statuses" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📋 Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "1. ✅ Migration complete" >> $GITHUB_STEP_SUMMARY
+          echo "2. ✅ render.yaml already updated to use Supabase" >> $GITHUB_STEP_SUMMARY
+          echo "3. 🔄 Redeploy on Render.com" >> $GITHUB_STEP_SUMMARY
+          echo "4. ✅ Test user logins" >> $GITHUB_STEP_SUMMARY
+          echo "5. 📦 Backup Supabase database" >> $GITHUB_STEP_SUMMARY

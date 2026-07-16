@@ -14,8 +14,9 @@ services:
     maxShutdownDelaySeconds: 5
     
     envVars:
+      # Core Django Settings
       - key: DATABASE_URL
-        value: postgresql://neondb_owner:npg_Pc4mXQWbVvH5@ep-holy-sea-a4989cmp-pooler.us-east-1.aws.neon.tech/my-elite-db?sslmode=require
+        value: postgresql://postgres.fykzoburtipislgjrcjm:gTpjdkGJBLBjdFGT@aws-1-ap-northeast-1.pooler.supabase.com:5432/postgres
       - key: DJANGO_SETTINGS_MODULE
         value: elite_wealth_capital.settings
       - key: DEBUG
@@ -26,21 +27,26 @@ services:
         value: elitewealthcapita.uk,www.elitewealthcapita.uk,my-site-ghnp.onrender.com,.onrender.com
       - key: PYTHON_VERSION
         value: "3.12.0"
-      # Admin
+      
+      # Admin Credentials
       - key: ADMIN_EMAIL
         value: admin@elitewealthcapita.uk
       - key: ADMIN_PASSWORD
         value: myfavour1$
-      # Company Info
+      
+      # Company Information
       - key: COMPANY_NAME
         value: Elite Wealth Capital
       - key: COMPANY_EMAIL
         value: admin@elitewealthcapita.uk
+      - key: COMPANY_PHONE
+        value: +47 22 33 44 55
       - key: COMPANY_WEBSITE
         value: https://elitewealthcapita.uk
       - key: COMPANY_ADDRESS
-        value: London, United Kingdom, Norway
-      # Email settings (Zoho)
+        value: London, United Kingdom
+      
+      # Email Settings (Zoho SMTP)
       - key: EMAIL_BACKEND
         value: django.core.mail.backends.smtp.EmailBackend
       - key: EMAIL_HOST
@@ -55,13 +61,30 @@ services:
         value: eAXHqJSWHGvM
       - key: DEFAULT_FROM_EMAIL
         value: admin@elitewealthcapita.uk
-      # Cloudinary
+      
+      # Cloudinary (Media Storage - Profile Images, KYC)
       - key: CLOUDINARY_CLOUD_NAME
         value: dh5ikf5un
       - key: CLOUDINARY_API_KEY
         value: "926391542761186"
       - key: CLOUDINARY_API_SECRET
         value: RGBNIYy2_c_wybiwH7-qINfbF5M
+      
+      # Redis/Celery (Background Tasks)
+      - key: REDIS_URL
+        generateValue: true
+      
+      # Tawk.to Live Chat (Optional - leave empty if not using)
+      - key: TAWK_PROPERTY_ID
+        value: ""
+      - key: TAWK_WIDGET_ID
+        value: ""
+      - key: TAWK_API_KEY
+        value: ""
+      
+      # CSRF Security
+      - key: CSRF_TRUSTED_ORIGINS
+        value: https://elitewealthcapita.uk,https://www.elitewealthcapita.uk,https://my-site-ghnp.onrender.com
 
   # Cron job to process investments automatically
   - type: cron
@@ -74,10 +97,16 @@ services:
     
     envVars:
       - key: DATABASE_URL
-        value: postgresql://neondb_owner:npg_Pc4mXQWbVvH5@ep-holy-sea-a4989cmp-pooler.us-east-1.aws.neon.tech/my-elite-db?sslmode=require
+        value: postgresql://postgres.fykzoburtipislgjrcjm:gTpjdkGJBLBjdFGT@aws-1-ap-northeast-1.pooler.supabase.com:5432/postgres
       - key: DJANGO_SETTINGS_MODULE
         value: elite_wealth_capital.settings
       - key: DEBUG
         value: "False"
       - key: SECRET_KEY
         value: django-insecure-elite-wealth-prod-key-2024
+      - key: CLOUDINARY_CLOUD_NAME
+        value: dh5ikf5un
+      - key: CLOUDINARY_API_KEY
+        value: "926391542761186"
+      - key: CLOUDINARY_API_SECRET
+        value: RGBNIYy2_c_wybiwH7-qINfbF5M

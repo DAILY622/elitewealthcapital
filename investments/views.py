@@ -137,55 +137,81 @@ def create_investment(request, plan_id):
     
     if request.method == 'POST':
         try:
-            amount_str = request.POST.get('amount', '0')
-            amount = Decimal(amount_str)
+            amount_str = request.POST.get('amount', '0').strip()
+            
+            # Better decimal conversion with error handling
+            try:
+                amount = Decimal(amount_str).quantize(Decimal('0.01'))
+            except (InvalidOperation, ValueError, decimal.InvalidOperation) as e:
+                logger.error(f'Invalid amount conversion: {amount_str} - {str(e)}')
+                messages.error(request, 'Please enter a valid numeric amount')
+                return redirect('investments:invest', plan_id=plan_id)
+            
             if amount <= 0:
                 messages.error(request, 'Amount must be greater than zero')
                 return redirect('investments:invest', plan_id=plan_id)
-        except (InvalidOperation, ValueError):
-            messages.error(request, 'Invalid amount entered')
-            return redirect('investments:invest', plan_id=plan_id)
         
-        # Validation
-        if amount < plan.min_amount or amount > plan.max_amount:
-            messages.error(request, f'Amount must be between ${plan.min_amount} and ${plan.max_amount}')
-            return redirect('investments:invest', plan_id=plan_id)
-        
-        if amount > request.user.balance:
-            messages.error(request, 'Insufficient balance. Please add funds first.')
-            return redirect('investments:deposit')
-        
-        # Use atomic transaction for financial operations
-        from django.db import transaction
-        try:
-            with transaction.atomic():
-                # Lock the user row to prevent race conditions
-                from django.contrib.auth import get_user_model
-                User = get_user_model()
-                user = User.objects.select_for_update().get(pk=request.user.pk)
+            # Validation
+            if amount < plan.min_amount:
+                messages.error(request, f'Minimum investment amount is ${plan.min_amount}')
+                return redirect('investments:invest', plan_id=plan_id)
                 
-                # Double-check balance after lock
-                if amount > user.balance:
-                    messages.error(request, 'Insufficient balance.')
-                    return redirect('investments:deposit')
+            if amount > plan.max_amount:
+                messages.error(request, f'Maximum investment amount is ${plan.max_amount}')
+                return redirect('investments:invest', plan_id=plan_id)
+            
+            if amount > request.user.balance:
+                messages.error(request, f'Insufficient balance. You have ${request.user.balance}, but need ${amount}. Please deposit funds first.')
+                return redirect('investments:deposit')
+            
+            # Use atomic transaction for financial operations
+            try:
+                with transaction.atomic():
+                    # Lock the user row to prevent race conditions
+                    from django.contrib.auth import get_user_model
+                    User = get_user_model()
+                    user = User.objects.select_for_update().get(pk=request.user.pk)
+                    
+                    # Double-check balance after lock
+                    if amount > user.balance:
+                        messages.error(request, 'Insufficient balance. Another transaction may have been processed.')
+                        return redirect('investments:deposit')
+                    
+                    # Create investment
+                    investment = Investment.objects.create(
+                        user=user,
+                        plan=plan,
+                        amount=amount
+                    )
+                    
+                    # Deduct from user balance
+                    user.balance -= amount
+                    user.invested_amount += amount
+                    user.save(update_fields=['balance', 'invested_amount'])
+                    
+                    # Create notification
+                    from notifications.models import Notification
+                    Notification.create_notification(
+                        user=user,
+                        title='Investment Created',
+                        message=f'Successfully invested ${amount} in {plan.name}',
+                        notification_type='investment',
+                        category='financial',
+                        action_url='/investments/my-investments/'
+                    )
+                    
+                logger.info(f'Investment created: User {user.email}, Amount ${amount}, Plan {plan.name}')
+                messages.success(request, f'Investment of ${amount} created successfully! View it in My Investments.')
+                return redirect('investments:my_investments')
                 
-                # Create investment
-                investment = Investment.objects.create(
-                    user=user,
-                    plan=plan,
-                    amount=amount
-                )
+            except Exception as e:
+                logger.error(f'Investment transaction error for user {request.user.email}: {str(e)}', exc_info=True)
+                messages.error(request, f'Transaction failed: {str(e)}. Please contact support if this persists.')
+                return redirect('investments:invest', plan_id=plan_id)
                 
-                # Deduct from user balance
-                user.balance -= amount
-                user.invested_amount += amount
-                user.save()
-                
-            messages.success(request, f'Investment of ${amount} created successfully!')
-            return redirect('dashboard:dashboard')
         except Exception as e:
-            logger.error(f'Investment creation error: {str(e)}')
-            messages.error(request, 'An error occurred. Please try again.')
+            logger.error(f'Investment creation error for user {request.user.email}: {str(e)}', exc_info=True)
+            messages.error(request, 'An unexpected error occurred. Please try again or contact support.')
             return redirect('investments:invest', plan_id=plan_id)
     
     return render(request, 'investments/invest.html', {'plan': plan})
@@ -584,6 +610,25 @@ def agent_page(request):
     }
     
     return render(request, 'investments/agent.html', context)
+
+
+@login_required
+def buy_shares(request):
+    """Buy shares/stocks - dedicated page for stock investments"""
+    # Get all stock investment plans
+    stock_plans = InvestmentPlan.objects.filter(
+        category='stocks',
+        is_active=True
+    ).order_by('sort_order', 'min_amount')
+    
+    context = {
+        'plans': stock_plans,
+        'sector_title': 'Buy Shares',
+        'sector_subtitle': 'Invest in Global Stock Markets',
+        'sector_description': 'Trade and invest in top-performing stocks from global markets. Build your equity portfolio with our curated selection of blue-chip stocks and emerging opportunities.',
+    }
+    
+    return render(request, 'investments/buy_shares.html', context)
 
 
 @ratelimit(key='ip', rate='60/m', method='GET', block=False)
