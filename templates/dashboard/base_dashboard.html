@@ -707,8 +707,15 @@
         
         async function loadNotifications() {
             try {
-                const res = await fetch('/notifications/api/recent/');
+                const res = await fetch('/notifications/recent/');
                 const data = await res.json();
+                
+                // Play sound if there are new unread notifications
+                const previousCount = parseInt(sessionStorage.getItem('notificationCount') || '0');
+                if (data.unread_count > previousCount && data.unread_count > 0) {
+                    playNotificationSound();
+                }
+                sessionStorage.setItem('notificationCount', data.unread_count);
                 const badge = document.getElementById('notificationBadge');
                 badge.textContent = data.unread_count > 99 ? '99+' : data.unread_count;
                 badge.style.display = data.unread_count > 0 ? 'block' : 'none';
@@ -725,9 +732,33 @@
         
         async function markNotificationRead(id, url) {
             const csrf = document.querySelector('[name=csrfmiddlewaretoken]')?.value || document.cookie.match(/csrftoken=([^;]+)/)?.[1];
-            await fetch(`/notifications/mark-read/${id}/`, {method: 'POST', headers: {'X-CSRFToken': csrf}});
+            await fetch(`/notifications/${id}/read/`, {method: 'POST', headers: {'X-CSRFToken': csrf}});
             loadNotifications();
             if (url && url !== '#') window.location.href = url;
+        }
+        
+        // Notification sound
+        function playNotificationSound() {
+            try {
+                // Create a simple beep sound using Web Audio API
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = 800; // Frequency in Hz
+                oscillator.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+            } catch (err) {
+                console.log('Sound not supported');
+            }
         }
         
         async function markAllAsRead() {
