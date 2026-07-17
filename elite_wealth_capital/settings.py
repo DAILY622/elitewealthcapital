@@ -21,13 +21,13 @@ DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
 ALLOWED_HOSTS = os.getenv(
     'ALLOWED_HOSTS',
-    'localhost,127.0.0.1,elitewealthcapita.uk,www.elitewealthcapita.uk,elitewealthcapita.onrender.com'
+    'localhost,127.0.0.1,elitewealthcapita.uk,www.elitewealthcapita.uk,my-site-gbql.onrender.com'
 ).split(',')
 
 CSRF_TRUSTED_ORIGINS = [
     'https://elitewealthcapita.uk',
     'https://www.elitewealthcapita.uk',
-    'https://elitewealthcapita.onrender.com'
+    'https://my-site-gbql.onrender.com'
 ]
 
 # Application definition
