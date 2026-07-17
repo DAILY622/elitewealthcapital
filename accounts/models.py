@@ -111,6 +111,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     failed_login_attempts = models.IntegerField(default=0)
     locked_until = models.DateTimeField(null=True, blank=True)
     
+    # Notification Preferences
+    notification_sound_enabled = models.BooleanField(default=True, help_text='Enable/disable notification sounds')
+    
     # Virtual Card Fields
     has_virtual_card = models.BooleanField(default=False)
     card_status = models.CharField(max_length=20, choices=CARD_STATUS_CHOICES, blank=True)

@@ -807,5 +807,14 @@ function handleFileSelect(input) {
         uploadHint.textContent = 'Click to change file';
     }
 }
+
+// Play page load sound when Add Funds page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if playSound function exists (from base_dashboard.html)
+    if (typeof playSound === 'function') {
+        // Small delay to ensure page is fully loaded
+        setTimeout(() => playSound('page-load'), 300);
+    }
+});
 </script>
 {% endblock %}

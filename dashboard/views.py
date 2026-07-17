@@ -529,6 +529,17 @@ def settings_page(request):
                 user.save()
                 messages.success(request, '2FA has been disabled.')
         
+        elif action == 'update_notifications':
+            # Handle notification preferences
+            notification_sound_enabled = request.POST.get('notification_sound_enabled') == 'on'
+            user.notification_sound_enabled = notification_sound_enabled
+            user.save()
+            
+            if notification_sound_enabled:
+                messages.success(request, '🔔 Notification sounds enabled! You will now hear alerts for new notifications.')
+            else:
+                messages.success(request, '🔇 Notification sounds disabled. You will not hear sound alerts.')
+        
         return redirect('dashboard:settings')
     
     context = {

@@ -94,3 +94,9 @@ def recent_notifications(request):
         'notifications': data,
         'unread_count': unread_count
     })
+
+
+@login_required
+def test_sounds(request):
+    """Test notification sounds page"""
+    return render(request, 'notifications/test_sounds.html')

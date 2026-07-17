@@ -1,37 +1,346 @@
 {% extends 'dashboard/base_dashboard.html' %}
 {% load static %}
 
-{% block title %}Settings{% endblock %}
+{% block title %}Account Settings - Elite Wealth Capital{% endblock %}
 
 {% block extra_css %}
 <style>
-    .settings-section {
-        margin-bottom: 30px;
+    :root {
+        --primary-gold: #FFD700;
+        --dark-gold: #FFA500;
+        --bg-card: rgba(255, 255, 255, 0.02);
+        --bg-card-hover: rgba(255, 255, 255, 0.05);
+        --border-color: rgba(255, 255, 255, 0.08);
+        --text-primary: #ffffff;
+        --text-secondary: rgba(255, 255, 255, 0.7);
+        --text-muted: rgba(255, 255, 255, 0.5);
+        --success: #00d4aa;
+        --warning: #ffa502;
+        --error: #ff4757;
     }
     
+    /* Settings Container */
+    .settings-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+    
+    /* Settings Header */
+    .settings-header {
+        background: linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, rgba(255, 165, 0, 0.05) 100%);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 35px 40px;
+        margin-bottom: 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .settings-header-content h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+        background: linear-gradient(135deg, var(--primary-gold), var(--dark-gold));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .settings-header-content p {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        margin: 0;
+    }
+    
+    /* Tab Navigation */
+    .settings-nav {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 10px;
+        margin-bottom: 30px;
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+    
+    .settings-nav::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .settings-nav-item {
+        flex: 1;
+        min-width: 140px;
+        padding: 14px 20px;
+        border-radius: 12px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: transparent;
+        border: 1px solid transparent;
+        color: var(--text-secondary);
+        font-weight: 500;
+        white-space: nowrap;
+    }
+    
+    .settings-nav-item:hover {
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--text-primary);
+    }
+    
+    .settings-nav-item.active {
+        background: linear-gradient(135deg, var(--primary-gold), var(--dark-gold));
+        color: #000;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+    }
+    
+    .settings-nav-item i {
+        margin-right: 8px;
+        font-size: 1rem;
+    }
+    
+    /* Settings Grid */
+    .settings-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 25px;
+    }
+    
+    @media (min-width: 992px) {
+        .settings-grid.two-column {
+            grid-template-columns: 2fr 1fr;
+        }
+    }
+    
+    /* Settings Card */
     .settings-card {
         background: var(--bg-card);
         border: 1px solid var(--border-color);
-        border-radius: 20px;
-        padding: 30px;
-        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        padding: 0;
+        transition: all 0.3s ease;
+        overflow: hidden;
     }
     
-    .settings-card h3 {
-        color: var(--gold);
-        font-size: 1.2rem;
+    .settings-card:hover {
+        border-color: rgba(255, 215, 0, 0.2);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    }
+    
+    .settings-card-header {
+        padding: 25px 30px;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .settings-card-header h3 {
+        font-size: 1.15rem;
         font-weight: 600;
-        margin-bottom: 25px;
-        padding-bottom: 15px;
+        margin: 0;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .settings-card-header .icon-badge {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 165, 0, 0.1));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary-gold);
+        font-size: 1.1rem;
+    }
+    
+    .settings-card-body {
+        padding: 30px;
+    }
+    
+    /* Profile Section */
+    .profile-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 25px;
+        margin-bottom: 35px;
+        padding-bottom: 30px;
         border-bottom: 1px solid var(--border-color);
     }
     
+    .profile-avatar-wrapper {
+        position: relative;
+    }
+    
+    .profile-avatar {
+        width: 110px;
+        height: 110px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, var(--primary-gold), var(--dark-gold));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        color: #000;
+        font-weight: 700;
+        border: 3px solid rgba(255, 215, 0, 0.2);
+        box-shadow: 0 8px 25px rgba(255, 215, 0, 0.15);
+    }
+    
+    .profile-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 14px;
+    }
+    
+    .upload-avatar-btn {
+        position: absolute;
+        bottom: -8px;
+        right: -8px;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary-gold), var(--dark-gold));
+        color: #000;
+        border: 3px solid #0A1F44;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .upload-avatar-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+    }
+    
+    .profile-info {
+        flex: 1;
+    }
+    
+    .profile-info h2 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 6px;
+        color: var(--text-primary);
+    }
+    
+    .profile-info .email {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        margin-bottom: 12px;
+        font-family: 'Courier New', monospace;
+    }
+    
+    .profile-badges {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    
+    /* Status Badge */
+    .status-badge {
+        padding: 6px 14px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .status-badge.verified {
+        background: rgba(0, 212, 170, 0.15);
+        color: var(--success);
+        border: 1px solid rgba(0, 212, 170, 0.3);
+    }
+    
+    .status-badge.pending {
+        background: rgba(255, 165, 2, 0.15);
+        color: var(--warning);
+        border: 1px solid rgba(255, 165, 2, 0.3);
+    }
+    
+    .status-badge.unverified {
+        background: rgba(255, 71, 87, 0.15);
+        color: var(--error);
+        border: 1px solid rgba(255, 71, 87, 0.3);
+    }
+    
+    .status-badge.tier {
+        background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.2));
+        color: var(--primary-gold);
+        border: 1px solid rgba(255, 215, 0, 0.3);
+    }
+    
+    /* Form Elements */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    @media (min-width: 768px) {
+        .form-grid.two-column {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+    
+    .form-group {
+        margin-bottom: 0;
+    }
+    
+    .form-label {
+        display: block;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .form-input {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 14px 16px;
+        color: var(--text-primary);
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-input:focus {
+        outline: none;
+        border-color: var(--primary-gold);
+        background: rgba(255, 255, 255, 0.06);
+        box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1);
+    }
+    
+    .form-input:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    
+    /* Setting Row */
     .setting-row {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 20px 0;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 24px 0;
+        border-bottom: 1px solid var(--border-color);
     }
     
     .setting-row:last-child {
@@ -39,23 +348,35 @@
         padding-bottom: 0;
     }
     
+    .setting-row:first-child {
+        padding-top: 0;
+    }
+    
+    .setting-info {
+        flex: 1;
+        padding-right: 20px;
+    }
+    
     .setting-info h5 {
         font-size: 1rem;
         font-weight: 600;
-        margin-bottom: 5px;
+        margin-bottom: 6px;
+        color: var(--text-primary);
     }
     
     .setting-info p {
         color: var(--text-muted);
-        font-size: 0.85rem;
+        font-size: 0.875rem;
         margin: 0;
+        line-height: 1.5;
     }
     
     /* Toggle Switch */
     .toggle-switch {
         position: relative;
-        width: 56px;
-        height: 28px;
+        width: 60px;
+        height: 32px;
+        flex-shrink: 0;
     }
     
     .toggle-switch input {
@@ -72,341 +393,752 @@
         right: 0;
         bottom: 0;
         background: rgba(255, 255, 255, 0.1);
-        border-radius: 28px;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 32px;
         transition: 0.3s;
     }
     
     .toggle-slider:before {
         position: absolute;
         content: "";
-        height: 22px;
-        width: 22px;
-        left: 3px;
-        bottom: 3px;
-        background: var(--bg-dark);
+        height: 24px;
+        width: 24px;
+        left: 2px;
+        bottom: 2px;
+        background: rgba(255, 255, 255, 0.3);
         border-radius: 50%;
         transition: 0.3s;
     }
     
     input:checked + .toggle-slider {
-        background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+        background: linear-gradient(135deg, var(--primary-gold), var(--dark-gold));
+        border-color: var(--primary-gold);
     }
     
     input:checked + .toggle-slider:before {
         transform: translateX(28px);
+        background: #000;
     }
     
-    /* Form Inputs */
-    .form-input {
+    /* Buttons */
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary-gold), var(--dark-gold));
+        color: #000;
+        border: none;
+        padding: 14px 30px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+    }
+    
+    .btn-secondary {
         background: rgba(255, 255, 255, 0.05);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 12px 15px;
         color: var(--text-primary);
-        width: 100%;
+        border: 1px solid var(--border-color);
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-weight: 500;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+    }
+    
+    .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: var(--primary-gold);
+        color: var(--primary-gold);
+    }
+    
+    .btn-danger {
+        background: rgba(255, 71, 87, 0.1);
+        color: var(--error);
+        border: 1px solid rgba(255, 71, 87, 0.3);
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-weight: 500;
+        cursor: pointer;
         transition: all 0.3s ease;
     }
     
-    .form-input:focus {
-        outline: none;
-        border-color: var(--gold);
-        background: rgba(255, 255, 255, 0.08);
+    .btn-danger:hover {
+        background: var(--error);
+        color: #fff;
+        border-color: var(--error);
     }
     
-    .form-label {
-        color: var(--text-secondary);
-        font-size: 0.9rem;
-        margin-bottom: 8px;
-        display: block;
-    }
-    
-    .form-group {
+    /* Info Card */
+    .info-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 20px;
         margin-bottom: 20px;
     }
     
-    /* Profile Avatar */
-    .profile-avatar-section {
-        display: flex;
-        align-items: center;
-        gap: 25px;
-        margin-bottom: 30px;
-    }
-    
-    .profile-avatar {
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 2.5rem;
-        color: var(--bg-darkest);
-        font-weight: 700;
-    }
-    
-    .profile-avatar img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        border-radius: 50%;
-    }
-    
-    /* Status Badge */
-    .status-badge {
-        padding: 5px 15px;
-        border-radius: 20px;
+    .info-card h6 {
         font-size: 0.8rem;
-        font-weight: 500;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+        font-weight: 600;
     }
     
-    .status-badge.verified {
-        background: rgba(0, 212, 170, 0.2);
-        color: var(--success);
+    .info-card .value {
+        font-size: 1.1rem;
+        color: var(--text-primary);
+        font-weight: 600;
     }
     
-    .status-badge.pending {
-        background: rgba(255, 165, 2, 0.2);
-        color: var(--warning);
-    }
-    
-    .status-badge.unverified {
-        background: rgba(255, 71, 87, 0.2);
-        color: var(--error);
+    .info-card .value.highlight {
+        color: var(--primary-gold);
+        font-family: 'Courier New', monospace;
     }
     
     /* Danger Zone */
     .danger-zone {
         border-color: rgba(255, 71, 87, 0.3);
+        background: rgba(255, 71, 87, 0.03);
     }
     
-    .danger-zone h3 {
+    .danger-zone .settings-card-header {
+        border-bottom-color: rgba(255, 71, 87, 0.2);
+    }
+    
+    .danger-zone .icon-badge {
+        background: rgba(255, 71, 87, 0.15);
         color: var(--error);
     }
     
-    .btn-danger-outline {
-        background: transparent;
-        border: 1px solid var(--error);
-        color: var(--error);
-        padding: 12px 25px;
-        border-radius: 12px;
-        cursor: pointer;
-        transition: all 0.3s ease;
+    /* Tab Content */
+    .tab-content {
+        display: none;
     }
     
-    .btn-danger-outline:hover {
-        background: var(--error);
-        color: #fff;
+    .tab-content.active {
+        display: block;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .settings-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 20px;
+        }
+        
+        .profile-header {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .profile-info h2 {
+            font-size: 1.4rem;
+        }
+        
+        .setting-row {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px;
+        }
+        
+        .setting-info {
+            padding-right: 0;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Top Bar -->
-<div class="topbar">
-    <div class="topbar-title">
-        <h1><i class="fas fa-cog me-2"></i>Account Settings</h1>
-        <p>Manage your account preferences and security</p>
+<div class="settings-container">
+    <!-- Settings Header -->
+    <div class="settings-header">
+        <div class="settings-header-content">
+            <h1><i class="fas fa-user-cog me-2"></i>Account Settings</h1>
+            <p>Manage your profile, security, and preferences</p>
+        </div>
+        <a href="{% url 'dashboard:dashboard' %}" class="btn-secondary">
+            <i class="fas fa-arrow-left"></i>Back to Dashboard
+        </a>
     </div>
-    <a href="{% url 'dashboard:dashboard' %}" class="btn-outline">
-        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
-    </a>
-</div>
 
-<!-- Profile Section -->
-<div class="settings-section">
-    <div class="settings-card">
-        <h3><i class="fas fa-user me-2"></i>Profile Information</h3>
-        
-        <div class="profile-avatar-section">
-            <div class="profile-avatar">
-                {% if user.profile_image %}
-                    <img src="{{ user.profile_image.url }}" alt="Profile" loading="lazy">
-                {% else %}
-                    {{ user.full_name|slice:":1"|upper }}
-                {% endif %}
+    <!-- Tab Navigation -->
+    <div class="settings-nav">
+        <div class="settings-nav-item active" onclick="showTab('profile')">
+            <i class="fas fa-user"></i>Profile
+        </div>
+        <div class="settings-nav-item" onclick="showTab('security')">
+            <i class="fas fa-shield-alt"></i>Security
+        </div>
+        <div class="settings-nav-item" onclick="showTab('notifications')">
+            <i class="fas fa-bell"></i>Notifications
+        </div>
+        <div class="settings-nav-item" onclick="showTab('account')">
+            <i class="fas fa-info-circle"></i>Account
+        </div>
+    </div>
+
+    <!-- Profile Tab -->
+    <div class="tab-content active" id="profile-tab">
+        <div class="settings-grid two-column">
+            <!-- Main Profile Card -->
+            <div class="settings-card">
+                <div class="settings-card-header">
+                    <h3>
+                        <span class="icon-badge"><i class="fas fa-user"></i></span>
+                        Personal Information
+                    </h3>
+                </div>
+                <div class="settings-card-body">
+                    <!-- Profile Header -->
+                    <div class="profile-header">
+                        <div class="profile-avatar-wrapper">
+                            <div class="profile-avatar">
+                                {% if user.profile_image %}
+                                    <img src="{{ user.profile_image.url }}" alt="Profile" loading="lazy" id="profileAvatarImg">
+                                {% else %}
+                                    <span id="profileAvatarInitial">{{ user.full_name|slice:":1"|upper }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="upload-avatar-btn" title="Upload Avatar" onclick="document.getElementById('avatarFileInput').click()">
+                                <i class="fas fa-camera"></i>
+                            </div>
+                            <input type="file" id="avatarFileInput" accept="image/jpeg,image/png,image/webp,image/gif" style="display: none;" onchange="uploadProfileImage(this)">
+                        </div>
+                        <div class="profile-info">
+                            <h2>{{ user.full_name|default:"No Name Set" }}</h2>
+                            <p class="email">{{ user.email }}</p>
+                            <div class="profile-badges">
+                                <span class="status-badge {% if user.kyc_status == 'verified' %}verified{% elif user.kyc_status == 'submitted' %}pending{% else %}unverified{% endif %}">
+                                    <i class="fas fa-{% if user.kyc_status == 'verified' %}check-circle{% elif user.kyc_status == 'submitted' %}clock{% else %}exclamation-circle{% endif %}"></i>
+                                    {% if user.kyc_status == 'verified' %}Verified{% elif user.kyc_status == 'submitted' %}Pending{% else %}Unverified{% endif %}
+                                </span>
+                                <span class="status-badge tier">
+                                    <i class="fas fa-crown"></i>
+                                    {{ user.get_account_type_display }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Edit Profile Form -->
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="update_profile">
+                        
+                        <div class="form-grid two-column">
+                            <div class="form-group">
+                                <label class="form-label">Full Name</label>
+                                <input type="text" name="full_name" class="form-input" value="{{ user.full_name }}" placeholder="Enter your full name">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Phone Number</label>
+                                <input type="text" name="phone" class="form-input" value="{{ user.phone }}" placeholder="+1 234 567 8900">
+                            </div>
+                        </div>
+                        
+                        <div class="form-grid two-column">
+                            <div class="form-group">
+                                <label class="form-label">Country</label>
+                                <input type="text" name="country" class="form-input" value="{{ user.country }}" placeholder="United States">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Email Address</label>
+                                <input type="email" class="form-input" value="{{ user.email }}" disabled>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn-primary mt-3">
+                            <i class="fas fa-save"></i>Save Changes
+                        </button>
+                    </form>
+                </div>
             </div>
+
+            <!-- Account Overview Sidebar -->
             <div>
-                <h4 style="margin-bottom: 5px;">{{ user.full_name|default:"No Name Set" }}</h4>
-                <p style="color: var(--text-muted); margin-bottom: 10px;">{{ user.email }}</p>
-                <span class="status-badge {% if user.kyc_status == 'verified' %}verified{% elif user.kyc_status == 'submitted' %}pending{% else %}unverified{% endif %}">
-                    {% if user.kyc_status == 'verified' %}
-                        <i class="fas fa-check-circle me-1"></i>Verified
-                    {% elif user.kyc_status == 'submitted' %}
-                        <i class="fas fa-clock me-1"></i>Pending Verification
-                    {% else %}
-                        <i class="fas fa-exclamation-circle me-1"></i>Not Verified
-                    {% endif %}
-                </span>
+                <div class="settings-card" style="margin-bottom: 25px;">
+                    <div class="settings-card-header">
+                        <h3>
+                            <span class="icon-badge"><i class="fas fa-chart-line"></i></span>
+                            Quick Stats
+                        </h3>
+                    </div>
+                    <div class="settings-card-body">
+                        <div class="info-card">
+                            <h6>Account Balance</h6>
+                            <div class="value highlight">${{ user.balance|floatformat:2 }}</div>
+                        </div>
+                        <div class="info-card">
+                            <h6>Total Invested</h6>
+                            <div class="value highlight">${{ user.invested_amount|floatformat:2 }}</div>
+                        </div>
+                        <div class="info-card">
+                            <h6>Total Profit</h6>
+                            <div class="value highlight">${{ user.total_profit|floatformat:2 }}</div>
+                        </div>
+                        <div class="info-card" style="margin-bottom: 0;">
+                            <h6>Member Since</h6>
+                            <div class="value">{{ user.date_joined|date:"M d, Y" }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-card">
+                    <div class="settings-card-header">
+                        <h3>
+                            <span class="icon-badge"><i class="fas fa-share-alt"></i></span>
+                            Referral
+                        </h3>
+                    </div>
+                    <div class="settings-card-body">
+                        <div class="info-card" style="margin-bottom: 0;">
+                            <h6>Your Referral Code</h6>
+                            <div class="value highlight" style="font-size: 1.5rem;">{{ user.referral_code }}</div>
+                            <button onclick="copyReferralCode()" class="btn-secondary mt-3" style="width: 100%;">
+                                <i class="fas fa-copy"></i>Copy Code
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        
-        <form method="POST">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="update_profile">
-            
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="form-label">Full Name</label>
-                        <input type="text" name="full_name" class="form-input" value="{{ user.full_name }}">
+    </div>
+
+    <!-- Security Tab -->
+    <div class="tab-content" id="security-tab">
+        <div class="settings-card">
+            <div class="settings-card-header">
+                <h3>
+                    <span class="icon-badge"><i class="fas fa-shield-alt"></i></span>
+                    Security & Authentication
+                </h3>
+            </div>
+            <div class="settings-card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="update_security">
+                    
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <h5><i class="fas fa-mobile-alt me-2 text-warning"></i>Two-Factor Authentication (2FA)</h5>
+                            <p>Secure your account with an additional verification layer. Highly recommended for protecting your investments.</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" name="enable_2fa" {% if user.two_fa_enabled %}checked{% endif %}>
+                            <span class="toggle-slider"></span>
+                        </label>
                     </div>
+                    
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <h5><i class="fas fa-key me-2 text-primary"></i>Password Management</h5>
+                            <p>Keep your account secure by updating your password regularly. Use a strong, unique password.</p>
+                        </div>
+                        <a href="{% url 'accounts:password_reset' %}" class="btn-secondary">
+                            <i class="fas fa-edit"></i>Change Password
+                        </a>
+                    </div>
+                    
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <h5><i class="fas fa-lock me-2 text-success"></i>Login Activity</h5>
+                            <p>Last successful login: <strong>{{ user.last_login|date:"F d, Y H:i"|default:"Never" }}</strong></p>
+                        </div>
+                        <button type="button" class="btn-secondary" onclick="alert('Login history feature coming soon!')">
+                            <i class="fas fa-history"></i>View History
+                        </button>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary mt-3">
+                        <i class="fas fa-save"></i>Save Security Settings
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications Tab -->
+    <div class="tab-content" id="notifications-tab">
+        <div class="settings-card">
+            <div class="settings-card-header">
+                <h3>
+                    <span class="icon-badge"><i class="fas fa-bell"></i></span>
+                    Notification Preferences
+                </h3>
+            </div>
+            <div class="settings-card-body">
+                <form method="POST" id="notificationPreferencesForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="update_notifications">
+                    
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <h5><i class="fas fa-volume-up me-2 text-primary"></i>Notification Sounds</h5>
+                            <p>Enable audio alerts when you receive new notifications. Helps you stay updated in real-time.</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" name="notification_sound_enabled" id="notificationSoundToggle" {% if user.notification_sound_enabled %}checked{% endif %} onchange="toggleNotificationSound(this)">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <h5><i class="fas fa-vial me-2 text-warning"></i>Test Notification Sounds</h5>
+                            <p>Preview all available notification sounds to ensure they work on your device.</p>
+                        </div>
+                        <a href="{% url 'notifications:test_sounds' %}" class="btn-secondary">
+                            <i class="fas fa-play"></i>Test Sounds
+                        </a>
+                    </div>
+                    
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <h5><i class="fas fa-envelope me-2 text-success"></i>Email Notifications</h5>
+                            <p>Receive important account updates via email. Recommended for security alerts.</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked disabled>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary mt-3">
+                        <i class="fas fa-save"></i>Save Notification Settings
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Account Tab -->
+    <div class="tab-content" id="account-tab">
+        <div class="settings-grid">
+            <!-- Account Information -->
+            <div class="settings-card">
+                <div class="settings-card-header">
+                    <h3>
+                        <span class="icon-badge"><i class="fas fa-info-circle"></i></span>
+                        Account Details
+                    </h3>
                 </div>
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="form-label">Phone Number</label>
-                        <input type="text" name="phone" class="form-input" value="{{ user.phone }}">
+                <div class="settings-card-body">
+                    <div class="form-grid two-column">
+                        <div class="info-card">
+                            <h6>Account ID</h6>
+                            <div class="value" style="font-size: 0.85rem; word-break: break-all;">{{ user.id }}</div>
+                        </div>
+                        <div class="info-card">
+                            <h6>Account Type</h6>
+                            <div class="value highlight">{{ user.get_account_type_display }}</div>
+                        </div>
+                        <div class="info-card">
+                            <h6>KYC Status</h6>
+                            <div class="value">{{ user.get_kyc_status_display }}</div>
+                        </div>
+                        <div class="info-card">
+                            <h6>Member Since</h6>
+                            <div class="value">{{ user.date_joined|date:"F d, Y" }}</div>
+                        </div>
+                        <div class="info-card">
+                            <h6>Referral Code</h6>
+                            <div class="value highlight">{{ user.referral_code }}</div>
+                        </div>
+                        <div class="info-card">
+                            <h6>Total Withdrawn</h6>
+                            <div class="value highlight">${{ user.total_withdrawn|floatformat:2 }}</div>
+                        </div>
+                    </div>
+
+                    <div class="setting-row mt-4">
+                        <div class="setting-info">
+                            <h5><i class="fas fa-id-card me-2 text-primary"></i>Complete KYC Verification</h5>
+                            <p>
+                                {% if user.kyc_status == 'verified' %}
+                                    ✅ Your identity is verified. You have full access to all features.
+                                {% elif user.kyc_status == 'submitted' %}
+                                    ⏳ Your documents are under review. Typically takes 24-48 hours.
+                                {% else %}
+                                    ⚠️ Verify your identity to unlock higher limits and premium features.
+                                {% endif %}
+                            </p>
+                        </div>
+                        <a href="{% url 'kyc:status' %}" class="btn-primary">
+                            <i class="fas fa-{% if user.kyc_status == 'verified' %}eye{% else %}upload{% endif %}"></i>
+                            {% if user.kyc_status == 'verified' %}View Status{% else %}Verify Now{% endif %}
+                        </a>
                     </div>
                 </div>
             </div>
-            
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="form-label">Country</label>
-                        <input type="text" name="country" class="form-input" value="{{ user.country }}">
-                    </div>
+
+            <!-- Danger Zone -->
+            <div class="settings-card danger-zone">
+                <div class="settings-card-header">
+                    <h3>
+                        <span class="icon-badge"><i class="fas fa-exclamation-triangle"></i></span>
+                        Danger Zone
+                    </h3>
                 </div>
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="form-label">Email (Cannot be changed)</label>
-                        <input type="email" class="form-input" value="{{ user.email }}" disabled>
+                <div class="settings-card-body">
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <h5><i class="fas fa-trash-alt me-2"></i>Delete Account</h5>
+                            <p>Permanently delete your account and all associated data. This action is irreversible and cannot be undone.</p>
+                        </div>
+                        <button class="btn-danger" onclick="confirmAccountDeletion()">
+                            <i class="fas fa-trash"></i>Delete Account
+                        </button>
                     </div>
                 </div>
             </div>
-            
-            <button type="submit" class="btn-gold">
-                <i class="fas fa-save me-2"></i>Save Changes
-            </button>
-        </form>
+        </div>
     </div>
 </div>
 
-<!-- Security Section -->
-<div class="settings-section">
-    <div class="settings-card">
-        <h3><i class="fas fa-shield-alt me-2"></i>Security Settings</h3>
-        
-        <form method="POST">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="update_security">
-            
-            <div class="setting-row">
-                <div class="setting-info">
-                    <h5>Two-Factor Authentication</h5>
-                    <p>Add an extra layer of security to your account</p>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" name="enable_2fa" {% if user.two_fa_enabled %}checked{% endif %}>
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-            
-            <div class="setting-row">
-                <div class="setting-info">
-                    <h5>Change Password</h5>
-                    <p>Update your account password regularly for security</p>
-                </div>
-                <a href="{% url 'accounts:password_reset' %}" class="btn-outline">
-                    Change Password
-                </a>
-            </div>
-            
-            <button type="submit" class="btn-gold mt-3">
-                <i class="fas fa-lock me-2"></i>Save Security Settings
-            </button>
-        </form>
+<!-- Loading Overlay -->
+<div id="uploadOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 99999; display: flex; align-items: center; justify-content: center;">
+    <div style="background: linear-gradient(135deg, #0A1F44, #050B1A); padding: 40px; border-radius: 20px; text-align: center; border: 1px solid rgba(255, 215, 0, 0.3); box-shadow: 0 10px 50px rgba(255, 215, 0, 0.2);">
+        <div style="width: 60px; height: 60px; border: 4px solid rgba(255, 215, 0, 0.2); border-top: 4px solid #FFD700; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
+        <p style="color: #FFD700; font-weight: 600; font-size: 1.1rem;">Uploading profile image...</p>
+        <p style="color: rgba(255, 255, 255, 0.6); font-size: 0.9rem; margin-top: 8px;">Please wait</p>
     </div>
 </div>
 
-<!-- KYC Verification -->
-<div class="settings-section">
-    <div class="settings-card">
-        <h3><i class="fas fa-id-card me-2"></i>KYC Verification</h3>
-        
-        <div class="setting-row">
-            <div class="setting-info">
-                <h5>Identity Verification Status</h5>
-                <p>
-                    {% if user.kyc_status == 'verified' %}
-                        Your identity has been verified. You have full access to all features.
-                    {% elif user.kyc_status == 'submitted' %}
-                        Your documents are being reviewed. This usually takes 24-48 hours.
-                    {% else %}
-                        Verify your identity to unlock higher withdrawal limits and premium features.
-                    {% endif %}
-                </p>
-            </div>
-            <a href="{% url 'kyc:status' %}" class="btn-gold">
-                {% if user.kyc_status == 'verified' %}
-                    <i class="fas fa-eye me-2"></i>View Status
-                {% else %}
-                    <i class="fas fa-upload me-2"></i>Verify Now
-                {% endif %}
-            </a>
-        </div>
-    </div>
-</div>
+<script>
+// Tab Switching
+function showTab(tabName) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Remove active from all nav items
+    document.querySelectorAll('.settings-nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    // Show selected tab
+    document.getElementById(tabName + '-tab').classList.add('active');
+    
+    // Highlight active nav item
+    event.target.closest('.settings-nav-item').classList.add('active');
+    
+    // Store active tab in localStorage
+    localStorage.setItem('activeSettingsTab', tabName);
+}
 
-<!-- Account Info -->
-<div class="settings-section">
-    <div class="settings-card">
-        <h3><i class="fas fa-info-circle me-2"></i>Account Information</h3>
-        
-        <div class="row">
-            <div class="col-md-6">
-                <div class="setting-row">
-                    <div class="setting-info">
-                        <h5>Account Type</h5>
-                        <p style="color: var(--gold); font-weight: 600;">{{ user.get_account_type_display }}</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="setting-row">
-                    <div class="setting-info">
-                        <h5>Member Since</h5>
-                        <p>{{ user.date_joined|date:"F d, Y" }}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="row">
-            <div class="col-md-6">
-                <div class="setting-row">
-                    <div class="setting-info">
-                        <h5>Referral Code</h5>
-                        <p style="color: var(--gold); font-weight: 600; font-family: monospace;">{{ user.referral_code }}</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="setting-row">
-                    <div class="setting-info">
-                        <h5>Last Login</h5>
-                        <p>{{ user.last_login|date:"F d, Y H:i"|default:"Never" }}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+// Restore last active tab on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const lastTab = localStorage.getItem('activeSettingsTab');
+    if (lastTab) {
+        const tabButton = document.querySelector(`.settings-nav-item:nth-child(${['profile', 'security', 'notifications', 'account'].indexOf(lastTab) + 1})`);
+        if (tabButton) {
+            document.querySelectorAll('.settings-nav-item').forEach(item => item.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            tabButton.classList.add('active');
+            document.getElementById(lastTab + '-tab').classList.add('active');
+        }
+    }
+});
 
-<!-- Danger Zone -->
-<div class="settings-section">
-    <div class="settings-card danger-zone">
-        <h3><i class="fas fa-exclamation-triangle me-2"></i>Danger Zone</h3>
+// Upload Profile Image
+function uploadProfileImage(input) {
+    const file = input.files[0];
+    if (!file) return;
+    
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+        showToast('Image size must be less than 5MB', 'error');
+        input.value = '';
+        return;
+    }
+    
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
+        showToast('Invalid file type. Please upload JPEG, PNG, WebP, or GIF', 'error');
+        input.value = '';
+        return;
+    }
+    
+    // Show loading overlay
+    const overlay = document.getElementById('uploadOverlay');
+    overlay.style.display = 'flex';
+    
+    // Create FormData
+    const formData = new FormData();
+    formData.append('avatar', file);
+    
+    // Get CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                      document.cookie.match(/csrftoken=([^;]+)/)?.[1];
+    
+    // Upload via AJAX
+    fetch('{% url "accounts:upload_avatar" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        overlay.style.display = 'none';
         
-        <div class="setting-row">
-            <div class="setting-info">
-                <h5>Delete Account</h5>
-                <p>Permanently delete your account and all associated data. This action cannot be undone.</p>
-            </div>
-            <button class="btn-danger-outline" onclick="alert('Please contact support to delete your account.')">
-                <i class="fas fa-trash me-2"></i>Delete Account
-            </button>
-        </div>
-    </div>
-</div>
+        if (data.success) {
+            // Update avatar image
+            const avatarContainer = document.querySelector('.profile-avatar');
+            const initial = document.getElementById('profileAvatarInitial');
+            const img = document.getElementById('profileAvatarImg');
+            
+            if (data.avatar_url) {
+                if (img) {
+                    img.src = data.avatar_url + '?t=' + new Date().getTime();
+                } else {
+                    avatarContainer.innerHTML = `<img src="${data.avatar_url}?t=${new Date().getTime()}" alt="Profile" loading="lazy" id="profileAvatarImg">`;
+                }
+            }
+            
+            showToast('✅ Profile image updated successfully!', 'success');
+            
+            // Reload page after 1.5 seconds to update all instances
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showToast(data.error || 'Upload failed', 'error');
+        }
+    })
+    .catch(error => {
+        overlay.style.display = 'none';
+        showToast('Upload failed. Please try again.', 'error');
+        console.error('Upload error:', error);
+    })
+    .finally(() => {
+        input.value = '';
+    });
+}
+
+// Notification Sound Toggle
+function toggleNotificationSound(toggle) {
+    const isEnabled = toggle.checked;
+    const message = isEnabled ? 'Notification sounds enabled! 🔔' : 'Notification sounds disabled 🔇';
+    
+    // Store preference in localStorage for immediate effect
+    localStorage.setItem('notificationSoundEnabled', isEnabled);
+    
+    // Show professional toast notification
+    showToast(message, isEnabled ? 'success' : 'info');
+    
+    // Test sound if enabled
+    if (isEnabled && typeof playSound === 'function') {
+        setTimeout(() => playSound('notification'), 500);
+    }
+}
+
+// Copy Referral Code
+function copyReferralCode() {
+    const referralCode = '{{ user.referral_code }}';
+    navigator.clipboard.writeText(referralCode).then(() => {
+        showToast('Referral code copied to clipboard! 📋', 'success');
+    }).catch(() => {
+        showToast('Failed to copy referral code', 'error');
+    });
+}
+
+// Account Deletion Confirmation
+function confirmAccountDeletion() {
+    if (confirm('⚠️ WARNING: This will permanently delete your account and all data.\n\nThis action CANNOT be undone!\n\nAre you absolutely sure you want to proceed?')) {
+        if (confirm('Please confirm one more time. Your account balance is ${{ user.balance|floatformat:2 }}.\n\nDo you really want to delete your account?')) {
+            alert('Please contact support at admin@elitewealthcapita.uk to process account deletion.');
+        }
+    }
+}
+
+// Professional Toast Notification
+function showToast(message, type = 'info') {
+    const colors = {
+        success: 'linear-gradient(135deg, #00d4aa, #00b894)',
+        error: 'linear-gradient(135deg, #ff4757, #e84118)',
+        warning: 'linear-gradient(135deg, #ffa502, #ff7f50)',
+        info: 'linear-gradient(135deg, #FFD700, #FFA500)'
+    };
+    
+    const icons = {
+        success: 'check-circle',
+        error: 'exclamation-circle',
+        warning: 'exclamation-triangle',
+        info: 'info-circle'
+    };
+    
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+        position: fixed;
+        top: 100px;
+        right: 30px;
+        z-index: 99999;
+        padding: 18px 28px;
+        border-radius: 12px;
+        background: ${colors[type] || colors.info};
+        color: ${type === 'info' ? '#000' : '#fff'};
+        font-weight: 600;
+        font-size: 0.95rem;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        animation: slideIn 0.3s ease-out;
+        min-width: 300px;
+        backdrop-filter: blur(10px);
+    `;
+    
+    toast.innerHTML = `<i class="fas fa-${icons[type]} me-2"></i>${message}`;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+// Add animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+`;
+document.head.appendChild(style);
+</script>
 {% endblock %}

@@ -1,0 +1,277 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Test Notification Sounds - Elite Wealth Capital{% endblock %}
+
+{% block content %}
+<style>
+    .test-sounds-page {
+        background: linear-gradient(135deg, #050B1A 0%, #0A1F44 100%);
+        min-height: 100vh;
+        padding: 60px 0;
+    }
+    .sound-test-card {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+    }
+    .sound-test-card:hover {
+        background: rgba(255, 255, 255, 0.08);
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(255, 215, 0, 0.2);
+    }
+    .test-btn {
+        background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+        border: none;
+        color: #000;
+        padding: 15px 40px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin: 10px;
+    }
+    .test-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 5px 20px rgba(255, 215, 0, 0.5);
+    }
+    .test-btn:active {
+        transform: scale(0.98);
+    }
+    .sound-description {
+        color: rgba(255, 255, 255, 0.7);
+        margin-top: 10px;
+        font-size: 14px;
+    }
+    .sound-icon {
+        font-size: 48px;
+        margin-bottom: 20px;
+    }
+    .status-message {
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+        display: none;
+    }
+    .status-success {
+        background: rgba(46, 204, 113, 0.2);
+        color: #2ecc71;
+        border: 1px solid #2ecc71;
+    }
+    .status-error {
+        background: rgba(231, 76, 60, 0.2);
+        color: #e74c3c;
+        border: 1px solid #e74c3c;
+    }
+    .header-section {
+        text-align: center;
+        margin-bottom: 50px;
+    }
+    .header-section h1 {
+        color: #FFD700;
+        font-size: 42px;
+        font-weight: 700;
+        margin-bottom: 15px;
+    }
+    .header-section p {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 18px;
+    }
+</style>
+
+<div class="test-sounds-page">
+    <div class="container">
+        <div class="header-section">
+            <h1><i class="fas fa-volume-up"></i> Notification Sounds Test</h1>
+            <p>Test all notification sounds to ensure they work properly on your device</p>
+            <a href="{% url 'notifications:list' %}" class="btn btn-outline-warning mt-3">
+                <i class="fas fa-arrow-left me-2"></i>Back to Notifications
+            </a>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="sound-test-card text-center">
+                    <div class="sound-icon">🔔</div>
+                    <h3 class="text-white">General Notification</h3>
+                    <p class="sound-description">Elegant bell sound for general notifications</p>
+                    <button class="test-btn" onclick="testSound('notification')">
+                        <i class="fas fa-play me-2"></i>Play Notification Sound
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <div class="sound-test-card text-center">
+                    <div class="sound-icon">💬</div>
+                    <h3 class="text-white">Message Notification</h3>
+                    <p class="sound-description">Distinctive pop sound for messages</p>
+                    <button class="test-btn" onclick="testSound('message')">
+                        <i class="fas fa-play me-2"></i>Play Message Sound
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <div class="sound-test-card text-center">
+                    <div class="sound-icon">✅</div>
+                    <h3 class="text-white">Success Notification</h3>
+                    <p class="sound-description">Positive tone for successful actions</p>
+                    <button class="test-btn" onclick="testSound('success')">
+                        <i class="fas fa-play me-2"></i>Play Success Sound
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <div class="sound-test-card text-center">
+                    <div class="sound-icon">⚠️</div>
+                    <h3 class="text-white">Warning Notification</h3>
+                    <p class="sound-description">Attention tone for warnings</p>
+                    <button class="test-btn" onclick="testSound('warning')">
+                        <i class="fas fa-play me-2"></i>Play Warning Sound
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <div class="sound-test-card text-center">
+                    <div class="sound-icon">❌</div>
+                    <h3 class="text-white">Error Alert</h3>
+                    <p class="sound-description">Alert tone for errors</p>
+                    <button class="test-btn" onclick="testSound('error')">
+                        <i class="fas fa-play me-2"></i>Play Error Sound
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <div class="sound-test-card text-center">
+                    <div class="sound-icon">📄</div>
+                    <h3 class="text-white">Page Load</h3>
+                    <p class="sound-description">Subtle tone for page navigation</p>
+                    <button class="test-btn" onclick="testSound('page-load')">
+                        <i class="fas fa-play me-2"></i>Play Page Sound
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div id="statusMessage" class="status-message"></div>
+            </div>
+        </div>
+
+        <div class="text-center mt-5">
+            <div class="sound-test-card" style="max-width: 700px; margin: 0 auto;">
+                <h4 class="text-white mb-3"><i class="fas fa-info-circle me-2"></i>How It Works</h4>
+                <p class="text-white-50 mb-3">All sounds are loaded from <strong>Mixkit CDN</strong> - a free professional sound library.</p>
+                <p class="text-white-50 mb-3">If sounds don't play, your browser might be blocking autoplay. Click any button above to enable audio.</p>
+                <p class="text-white-50">
+                    <i class="fas fa-check-circle text-success me-2"></i>Zero local storage needed<br>
+                    <i class="fas fa-check-circle text-success me-2"></i>Fast CDN delivery<br>
+                    <i class="fas fa-check-circle text-success me-2"></i>Automatic fallback to Web Audio API
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Sound URLs from CDN
+const soundUrls = {
+    'notification': 'https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3',
+    'message': 'https://assets.mixkit.co/active_storage/sfx/2357/2357-preview.mp3',
+    'page-load': 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3',
+    'success': 'https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3',
+    'error': 'https://assets.mixkit.co/active_storage/sfx/2955/2955-preview.mp3',
+    'warning': 'https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3'
+};
+
+function testSound(soundType) {
+    const statusDiv = document.getElementById('statusMessage');
+    statusDiv.style.display = 'block';
+    statusDiv.className = 'status-message';
+    statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Loading sound...';
+    
+    try {
+        const soundUrl = soundUrls[soundType] || soundUrls['notification'];
+        const audio = new Audio(soundUrl);
+        audio.volume = 0.6;
+        
+        audio.oncanplaythrough = () => {
+            statusDiv.className = 'status-message status-success';
+            statusDiv.innerHTML = '<i class="fas fa-check-circle me-2"></i>Playing ' + soundType + ' sound...';
+        };
+        
+        audio.onerror = () => {
+            statusDiv.className = 'status-message status-error';
+            statusDiv.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Failed to load sound from CDN. Using fallback beep...';
+            playWebAudioBeep(soundType);
+        };
+        
+        audio.play().then(() => {
+            setTimeout(() => {
+                statusDiv.className = 'status-message status-success';
+                statusDiv.innerHTML = '<i class="fas fa-check-circle me-2"></i>Sound played successfully!';
+            }, 500);
+        }).catch((error) => {
+            statusDiv.className = 'status-message status-error';
+            statusDiv.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Browser blocked autoplay. Click the button again to enable audio.';
+            console.error('Playback error:', error);
+        });
+    } catch (err) {
+        statusDiv.className = 'status-message status-error';
+        statusDiv.innerHTML = '<i class="fas fa-times-circle me-2"></i>Error: ' + err.message;
+    }
+}
+
+// Fallback Web Audio API beep
+function playWebAudioBeep(soundType) {
+    try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        const frequencies = {
+            'notification': 800,
+            'message': 1000,
+            'page-load': 600,
+            'success': 1200,
+            'error': 400,
+            'warning': 700
+        };
+        
+        oscillator.frequency.value = frequencies[soundType] || 800;
+        oscillator.type = 'sine';
+        
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.4);
+    } catch (err) {
+        console.error('Fallback beep error:', err);
+    }
+}
+
+// Auto-hide status message after 5 seconds
+setInterval(() => {
+    const statusDiv = document.getElementById('statusMessage');
+    if (statusDiv.style.display === 'block') {
+        setTimeout(() => {
+            statusDiv.style.display = 'none';
+        }, 5000);
+    }
+}, 1000);
+</script>
+{% endblock %}

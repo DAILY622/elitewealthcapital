@@ -10,4 +10,5 @@ urlpatterns = [
     path('<int:notification_id>/delete/', views.delete_notification, name='delete'),
     path('unread-count/', views.unread_count, name='unread_count'),
     path('recent/', views.recent_notifications, name='recent'),
+    path('test-sounds/', views.test_sounds, name='test_sounds'),
 ]
