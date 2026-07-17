@@ -88,7 +88,7 @@ class Investment(models.Model):
     actual_profit = models.DecimalField(max_digits=15, decimal_places=2, default=0)
     
     # Timeline
-    start_date = models.DateTimeField(auto_now_add=True)
+    start_date = models.DateTimeField(default=timezone.now)
     end_date = models.DateTimeField()
     completed_at = models.DateTimeField(null=True, blank=True)
     profit_paid_at = models.DateTimeField(null=True, blank=True)
@@ -110,6 +110,10 @@ class Investment(models.Model):
         return f"{self.user.email} - {self.plan.name} - ${self.amount}"
     
     def save(self, *args, **kwargs):
+        # Set start_date if not set (for new objects)
+        if not self.start_date:
+            self.start_date = timezone.now()
+        
         # Calculate end_date if not set
         if not self.end_date:
             self.end_date = self.start_date + timezone.timedelta(days=self.plan.duration_days)
