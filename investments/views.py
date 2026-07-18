@@ -509,34 +509,191 @@ def loan_repay(request, loan_id):
 
 
 @login_required
+@login_required
 def virtual_cards(request):
-    """Virtual card management"""
-    if request.method == 'POST':
-        card_type = request.POST.get('card_type', 'standard')
-        billing_address = request.POST.get('billing_address', '')
-        
-        # Set limits based on card type
-        limits = {
-            'standard': {'daily': 1000, 'monthly': 10000},
-            'premium': {'daily': 5000, 'monthly': 50000},
-            'platinum': {'daily': 10000, 'monthly': 100000},
-        }
-        
-        # Create new card
-        VirtualCard.objects.create(
-            user=request.user,
-            card_type=card_type,
-            card_holder_name=request.user.full_name,
-            billing_address=billing_address or request.user.country,
-            daily_limit=limits[card_type]['daily'],
-            monthly_limit=limits[card_type]['monthly']
-        )
-        
-        messages.success(request, 'Virtual card request submitted! Admin will review and activate shortly.')
-        return redirect('investments:cards')
+    """Virtual card management with full features"""
+    from notifications.models import Notification
+    import random
+    from datetime import datetime
     
-    cards = VirtualCard.objects.filter(user=request.user).order_by('-created_at')
-    return render(request, 'investments/cards.html', {'cards': cards})
+    user = request.user
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        # Apply for new card
+        if action == 'apply':
+            # Check if user already has a card
+            if VirtualCard.objects.filter(user=user).exists():
+                messages.error(request, 'You already have a virtual card.')
+                return redirect('investments:cards')
+            
+            card_type = request.POST.get('card_type', 'standard')
+            billing_address = request.POST.get('billing_address', user.country)
+            
+            # Set limits based on card type
+            limits = {
+                'standard': {'daily': 1000, 'monthly': 10000},
+                'premium': {'daily': 5000, 'monthly': 50000},
+                'platinum': {'daily': 10000, 'monthly': 100000},
+            }
+            
+            # Generate card details
+            card_number = '5' + ''.join([str(random.randint(0, 9)) for _ in range(15)])
+            cvv = ''.join([str(random.randint(0, 9)) for _ in range(3)])
+            
+            # Create card
+            card = VirtualCard.objects.create(
+                user=user,
+                card_type=card_type,
+                card_holder_name=user.full_name,
+                billing_address=billing_address,
+                daily_limit=limits[card_type]['daily'],
+                monthly_limit=limits[card_type]['monthly'],
+                card_number=card_number,
+                cvv=cvv,
+                expiry_month=12,
+                expiry_year=datetime.now().year + 5
+            )
+            
+            messages.success(request, f'{card_type.title()} card application submitted! Pending admin approval.')
+            
+            # Create notification
+            Notification.create_notification(
+                user=user,
+                title='Virtual Card Application Received',
+                message=f'Your {card_type.title()} card application is being reviewed by our team.',
+                notification_type='info',
+                category='financial',
+                action_url='/investments/cards/'
+            )
+            
+            return redirect('investments:cards')
+        
+        # Freeze card
+        elif action == 'freeze':
+            try:
+                card = VirtualCard.objects.get(user=user)
+                if card.status == 'active':
+                    card.status = 'frozen'
+                    card.save()
+                    messages.success(request, 'Card frozen successfully. You can unfreeze it anytime.')
+                    
+                    Notification.create_notification(
+                        user=user,
+                        title='Card Frozen',
+                        message='Your virtual card has been frozen for security.',
+                        notification_type='warning',
+                        category='security'
+                    )
+                else:
+                    messages.error(request, 'Only active cards can be frozen.')
+            except VirtualCard.DoesNotExist:
+                messages.error(request, 'No card found.')
+            
+            return redirect('investments:cards')
+        
+        # Unfreeze card
+        elif action == 'unfreeze':
+            try:
+                card = VirtualCard.objects.get(user=user)
+                if card.status == 'frozen':
+                    card.status = 'active'
+                    card.save()
+                    messages.success(request, 'Card activated successfully.')
+                    
+                    Notification.create_notification(
+                        user=user,
+                        title='Card Activated',
+                        message='Your virtual card has been reactivated.',
+                        notification_type='success',
+                        category='financial'
+                    )
+                else:
+                    messages.error(request, 'Only frozen cards can be unfrozen.')
+            except VirtualCard.DoesNotExist:
+                messages.error(request, 'No card found.')
+            
+            return redirect('investments:cards')
+        
+        # Top up card
+        elif action == 'topup':
+            try:
+                card = VirtualCard.objects.get(user=user)
+                amount = Decimal(request.POST.get('amount', 0))
+                
+                if amount <= 0:
+                    messages.error(request, 'Invalid amount.')
+                elif amount > user.balance:
+                    messages.error(request, 'Insufficient balance.')
+                elif card.status != 'active':
+                    messages.error(request, 'Card must be active to top up.')
+                else:
+                    # Transfer from balance to card
+                    user.balance -= amount
+                    card.balance += amount
+                    user.save()
+                    card.save()
+                    
+                    messages.success(request, f'${amount} transferred to card successfully.')
+                    
+                    Notification.create_notification(
+                        user=user,
+                        title='Card Top-Up Successful',
+                        message=f'${amount} has been added to your virtual card balance.',
+                        notification_type='success',
+                        category='financial'
+                    )
+            except VirtualCard.DoesNotExist:
+                messages.error(request, 'No card found.')
+            except (ValueError, InvalidOperation):
+                messages.error(request, 'Invalid amount format.')
+            
+            return redirect('investments:cards')
+    
+    # Get user's card (if exists)
+    try:
+        card = VirtualCard.objects.get(user=user)
+        has_card = True
+    except VirtualCard.DoesNotExist:
+        card = None
+        has_card = False
+    
+    # Card type options
+    card_types = [
+        {
+            'name': 'Standard',
+            'value': 'standard',
+            'monthly_limit': 10000,
+            'daily_limit': 1000,
+            'fee': 0,
+            'features': ['Online payments', 'No monthly fee', '$1,000/day limit', '$10,000/month limit']
+        },
+        {
+            'name': 'Premium',
+            'value': 'premium',
+            'monthly_limit': 50000,
+            'daily_limit': 5000,
+            'fee': 10,
+            'features': ['All Standard features', 'ATM withdrawals', '$5,000/day limit', '$50,000/month limit', '1% cashback']
+        },
+        {
+            'name': 'Platinum',
+            'value': 'platinum',
+            'monthly_limit': 100000,
+            'daily_limit': 10000,
+            'fee': 25,
+            'features': ['All Premium features', 'International transactions', '$10,000/day limit', '$100,000/month limit', '2% cashback', 'Priority support']
+        }
+    ]
+    
+    context = {
+        'card': card,
+        'has_card': has_card,
+        'card_types': card_types,
+    }
+    
+    return render(request, 'investments/virtual_cards.html', context)
 
 
 @login_required
