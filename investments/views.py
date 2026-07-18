@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-from django.db import transaction
+from django.db import transaction, models
 from .models import (InvestmentPlan, Investment, Deposit, Withdrawal, WalletAddress,
                      Loan, LoanRepayment, VirtualCard, Coupon, AgentApplication, CryptoTicker,
                      CardTransaction)
@@ -1083,3 +1083,125 @@ def card_transactions(request):
     except VirtualCard.DoesNotExist:
        messages.error(request, 'No virtual card found.')
        return redirect('investments:cards')
+
+
+@login_required
+def investment_dashboard(request):
+    """Investment performance analytics dashboard"""
+    user = request.user
+    timeframe = request.GET.get('timeframe', '365')
+    
+    try:
+       timeframe = int(timeframe)
+       if timeframe not in [30, 90, 365]:
+           timeframe = 365
+    except (ValueError, TypeError):
+       timeframe = 365
+    
+    # Get cutoff date
+    cutoff_date = timezone.now() - timezone.timedelta(days=timeframe)
+    
+    # Get all user investments
+    all_investments = Investment.objects.filter(user=user)
+    investments_in_period = all_investments.filter(start_date__gte=cutoff_date)
+    
+    # Calculate portfolio metrics
+    total_invested = all_investments.aggregate(models.Sum('amount'))['amount__sum'] or Decimal(0)
+    current_value = Decimal(0)
+    total_profit = Decimal(0)
+    total_actual_profit = Decimal(0)
+    
+    portfolio_by_type = {}
+    top_performers = []
+    
+    for investment in all_investments:
+       if investment.status == 'active':
+           # For active investments, calculate current value with expected profit
+           current_value += investment.amount + (investment.expected_profit * (investment.days_elapsed / investment.duration_days))
+       else:
+           # For completed investments, use final profit
+           current_value += investment.amount + investment.actual_profit
+           total_actual_profit += investment.actual_profit
+        
+       total_profit += investment.expected_profit if investment.status == 'active' else investment.actual_profit
+        
+       # Group by category
+       category = investment.plan.category
+       if category not in portfolio_by_type:
+           portfolio_by_type[category] = Decimal(0)
+       portfolio_by_type[category] += investment.amount
+        
+       top_performers.append({
+           'plan': investment.plan.name,
+           'amount': investment.amount,
+           'expected_profit': investment.expected_profit,
+           'status': investment.status,
+           'roi': (investment.expected_profit / investment.amount * 100) if investment.amount > 0 else 0,
+       })
+    
+    # Sort top performers by ROI
+    top_performers = sorted(top_performers, key=lambda x: x['roi'], reverse=True)[:5]
+    
+    # Calculate ROI percentage
+    roi_percentage = (total_profit / total_invested * 100) if total_invested > 0 else 0
+    
+    # Calculate profit/loss
+    profit_loss = current_value - total_invested
+    gain_loss_percentage = (profit_loss / total_invested * 100) if total_invested > 0 else 0
+    
+    # Get performance data for chart (daily intervals)
+    performance_data = []
+    if investments_in_period.exists():
+       dates = []
+       cumulative_profit = []
+        
+       current_date = cutoff_date
+       cumulative = Decimal(0)
+        
+       while current_date <= timezone.now():
+           period_investments = investments_in_period.filter(start_date__lte=current_date)
+           daily_profit = Decimal(0)
+            
+           for inv in period_investments:
+               if inv.status == 'completed':
+                   if inv.completed_at and inv.completed_at.date() <= current_date.date():
+                       daily_profit += inv.actual_profit
+               else:
+                   if inv.start_date.date() <= current_date.date():
+                       days_elapsed = (current_date - inv.start_date).days
+                       daily_profit += (inv.expected_profit / inv.duration_days) * min(days_elapsed, inv.duration_days)
+            
+           cumulative = daily_profit
+           dates.append(current_date.strftime('%Y-%m-%d'))
+           cumulative_profit.append(float(cumulative))
+           current_date += timezone.timedelta(days=1)
+        
+       performance_data = list(zip(dates, cumulative_profit))
+    
+    # Portfolio allocation data
+    portfolio_data = []
+    for category, amount in portfolio_by_type.items():
+       portfolio_data.append({
+           'category': category.replace('_', ' ').title(),
+           'amount': float(amount),
+           'percentage': float((amount / total_invested * 100) if total_invested > 0 else 0),
+       })
+    
+    context = {
+       'total_invested': float(total_invested),
+       'current_value': float(current_value),
+       'total_profit': float(total_profit),
+       'profit_loss': float(profit_loss),
+       'roi_percentage': float(roi_percentage),
+       'gain_loss_percentage': float(gain_loss_percentage),
+       'profit_loss_class': 'positive' if profit_loss >= 0 else 'negative',
+       'active_investments': all_investments.filter(status='active').count(),
+       'completed_investments': all_investments.filter(status='completed').count(),
+       'portfolio_by_type': portfolio_data,
+       'top_performers': top_performers,
+       'performance_data': performance_data,
+       'timeframe': timeframe,
+       'has_investments': all_investments.exists(),
+    }
+    
+    return render(request, 'investments/performance_dashboard.html', context)

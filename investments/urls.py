@@ -9,6 +9,7 @@ urlpatterns = [
     path('buy-shares/', views.buy_shares, name='buy_shares'),
     path('invest/<int:plan_id>/', views.create_investment, name='invest'),
     path('my-investments/', views.my_investments, name='my_investments'),
+    path('performance-dashboard/', views.investment_dashboard, name='performance_dashboard'),
     path('deposit/', views.deposit_view, name='deposit'),
     path('deposit-status/<int:deposit_id>/', views.deposit_status, name='deposit_status'),
     path('pending-payment/<int:deposit_id>/', views.pending_payment, name='pending_payment'),
