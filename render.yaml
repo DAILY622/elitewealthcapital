@@ -87,10 +87,6 @@ services:
       - key: CLOUDINARY_API_SECRET
         value: RGBNIYy2_c_wybiwH7-qINfbF5M
       
-      # Redis/Celery (Background Tasks)
-      - key: REDIS_URL
-        generateValue: true
-      
       # Tawk.to Live Chat (Optional - leave empty if not using)
       - key: TAWK_PROPERTY_ID
         value: ""
