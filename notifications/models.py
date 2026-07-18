@@ -3,6 +3,66 @@ from django.conf import settings
 from django.utils import timezone
 
 
+class NotificationPreference(models.Model):
+    """User notification preferences"""
+    
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='notification_preferences'
+    )
+    
+    # Email notifications
+    email_on_deposit = models.BooleanField(default=True, help_text='Email when deposit is approved')
+    email_on_withdrawal = models.BooleanField(default=True, help_text='Email when withdrawal is processed')
+    email_on_investment = models.BooleanField(default=True, help_text='Email when investment is created')
+    email_on_profit = models.BooleanField(default=True, help_text='Email on profit credited')
+    email_on_kyc = models.BooleanField(default=True, help_text='Email on KYC status change')
+    email_on_referral = models.BooleanField(default=True, help_text='Email when someone uses your referral')
+    email_on_security = models.BooleanField(default=True, help_text='Email on security alerts')
+    
+    # Push notifications
+    push_enabled = models.BooleanField(default=False, help_text='Enable browser push notifications')
+    push_on_deposit = models.BooleanField(default=True)
+    push_on_withdrawal = models.BooleanField(default=True)
+    push_on_investment = models.BooleanField(default=True)
+    push_on_profit = models.BooleanField(default=False)
+    push_on_kyc = models.BooleanField(default=True)
+    push_on_referral = models.BooleanField(default=True)
+    
+    # SMS notifications (if implemented)
+    sms_enabled = models.BooleanField(default=False, help_text='Enable SMS notifications')
+    sms_on_deposit = models.BooleanField(default=False)
+    sms_on_withdrawal = models.BooleanField(default=True)
+    sms_on_security = models.BooleanField(default=True)
+    
+    # Notification sounds
+    sound_enabled = models.BooleanField(default=True, help_text='Play sound for notifications')
+    
+    # Digest emails
+    daily_digest = models.BooleanField(default=False, help_text='Send daily summary email')
+    weekly_digest = models.BooleanField(default=False, help_text='Send weekly summary email')
+    
+    # Marketing
+    marketing_emails = models.BooleanField(default=True, help_text='Receive promotional emails')
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = 'Notification Preference'
+        verbose_name_plural = 'Notification Preferences'
+    
+    def __str__(self):
+        return f"Preferences for {self.user.email}"
+    
+    @classmethod
+    def get_or_create_for_user(cls, user):
+        """Get or create preferences for a user"""
+        prefs, created = cls.objects.get_or_create(user=user)
+        return prefs
+
+
 class Notification(models.Model):
     """User notifications"""
     

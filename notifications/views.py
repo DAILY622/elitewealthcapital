@@ -100,3 +100,54 @@ def recent_notifications(request):
 def test_sounds(request):
     """Test notification sounds page"""
     return render(request, 'notifications/test_sounds.html')
+
+
+@login_required
+def notification_preferences(request):
+    """User notification preferences page"""
+    from .models import NotificationPreference
+    from django.contrib import messages
+    
+    prefs = NotificationPreference.get_or_create_for_user(request.user)
+    
+    if request.method == 'POST':
+        # Update email preferences
+        prefs.email_on_deposit = request.POST.get('email_on_deposit') == 'on'
+        prefs.email_on_withdrawal = request.POST.get('email_on_withdrawal') == 'on'
+        prefs.email_on_investment = request.POST.get('email_on_investment') == 'on'
+        prefs.email_on_profit = request.POST.get('email_on_profit') == 'on'
+        prefs.email_on_kyc = request.POST.get('email_on_kyc') == 'on'
+        prefs.email_on_referral = request.POST.get('email_on_referral') == 'on'
+        prefs.email_on_security = request.POST.get('email_on_security') == 'on'
+        
+        # Update push preferences
+        prefs.push_enabled = request.POST.get('push_enabled') == 'on'
+        prefs.push_on_deposit = request.POST.get('push_on_deposit') == 'on'
+        prefs.push_on_withdrawal = request.POST.get('push_on_withdrawal') == 'on'
+        prefs.push_on_investment = request.POST.get('push_on_investment') == 'on'
+        prefs.push_on_profit = request.POST.get('push_on_profit') == 'on'
+        prefs.push_on_kyc = request.POST.get('push_on_kyc') == 'on'
+        prefs.push_on_referral = request.POST.get('push_on_referral') == 'on'
+        
+        # Update SMS preferences
+        prefs.sms_enabled = request.POST.get('sms_enabled') == 'on'
+        prefs.sms_on_deposit = request.POST.get('sms_on_deposit') == 'on'
+        prefs.sms_on_withdrawal = request.POST.get('sms_on_withdrawal') == 'on'
+        prefs.sms_on_security = request.POST.get('sms_on_security') == 'on'
+        
+        # Update sound and digest preferences
+        prefs.sound_enabled = request.POST.get('sound_enabled') == 'on'
+        prefs.daily_digest = request.POST.get('daily_digest') == 'on'
+        prefs.weekly_digest = request.POST.get('weekly_digest') == 'on'
+        prefs.marketing_emails = request.POST.get('marketing_emails') == 'on'
+        
+        prefs.save()
+        messages.success(request, 'Notification preferences updated successfully!')
+        
+        return JsonResponse({'success': True, 'message': 'Preferences saved'})
+    
+    context = {
+        'prefs': prefs,
+    }
+    
+    return render(request, 'notifications/preferences.html', context)

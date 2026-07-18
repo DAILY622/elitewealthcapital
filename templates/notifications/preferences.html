@@ -1,0 +1,511 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Notification Preferences - Elite Wealth Capital{% endblock %}
+
+{% block extra_css %}
+<style>
+    .preferences-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 30px 20px;
+    }
+    
+    .prefs-header {
+        background: linear-gradient(135deg, #0A1F44 0%, #1a3a6b 100%);
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        color: white;
+    }
+    
+    .prefs-header h1 {
+        font-size: 28px;
+        margin: 0 0 10px 0;
+        color: #FFD700;
+    }
+    
+    .prefs-header p {
+        margin: 0;
+        opacity: 0.9;
+    }
+    
+    .prefs-section {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #f0f0f0;
+    }
+    
+    .section-icon {
+        font-size: 24px;
+    }
+    
+    .section-header h2 {
+        font-size: 20px;
+        margin: 0;
+        color: #0A1F44;
+    }
+    
+    .pref-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 0;
+        border-bottom: 1px solid #f5f5f5;
+    }
+    
+    .pref-item:last-child {
+        border-bottom: none;
+    }
+    
+    .pref-info {
+        flex: 1;
+    }
+    
+    .pref-label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 5px;
+    }
+    
+    .pref-description {
+        font-size: 13px;
+        color: #666;
+    }
+    
+    /* Toggle Switch */
+    .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 26px;
+    }
+    
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    
+    .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: 0.4s;
+        border-radius: 26px;
+    }
+    
+    .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 20px;
+        width: 20px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+    }
+    
+    input:checked + .toggle-slider {
+        background-color: #27ae60;
+    }
+    
+    input:checked + .toggle-slider:before {
+        transform: translateX(24px);
+    }
+    
+    .save-button {
+        background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+        color: #000;
+        border: none;
+        padding: 15px 40px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 16px;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+        transition: transform 0.2s;
+        width: 100%;
+        margin-top: 20px;
+    }
+    
+    .save-button:hover {
+        transform: translateY(-2px);
+    }
+    
+    .info-badge {
+        background: #e3f2fd;
+        color: #1976d2;
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 500;
+        display: inline-block;
+        margin-top: 10px;
+    }
+    
+    .success-message {
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        display: none;
+    }
+    
+    .success-message.show {
+        display: block;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="preferences-container">
+    <div class="prefs-header">
+        <h1>🔔 Notification Preferences</h1>
+        <p>Customize how you want to receive notifications from Elite Wealth Capital</p>
+    </div>
+    
+    <div id="successMessage" class="success-message">
+        ✅ Your preferences have been saved successfully!
+    </div>
+    
+    <form id="preferencesForm" method="post">
+        {% csrf_token %}
+        
+        <!-- Email Notifications -->
+        <div class="prefs-section">
+            <div class="section-header">
+                <span class="section-icon">📧</span>
+                <h2>Email Notifications</h2>
+            </div>
+            
+            <div class="pref-item">
+                <div class="pref-info">
+                    <div class="pref-label">Deposit Approvals</div>
+                    <div class="pref-description">Get notified when your deposit is approved</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" name="email_on_deposit" {% if prefs.email_on_deposit %}checked{% endif %}>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            
+            <div class="pref-item">
+                <div class="pref-info">
+                    <div class="pref-label">Withdrawal Processing</div>
+                    <div class="pref-description">Get notified when your withdrawal is processed</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" name="email_on_withdrawal" {% if prefs.email_on_withdrawal %}checked{% endif %}>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            
+            <div class="pref-item">
+                <div class="pref-info">
+                    <div class="pref-label">Investment Confirmation</div>
+                    <div class="pref-description">Get notified when you create a new investment</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" name="email_on_investment" {% if prefs.email_on_investment %}checked{% endif %}>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            
+            <div class="pref-item">
+                <div class="pref-info">
+                    <div class="pref-label">Profit Credits</div>
+                    <div class="pref-description">Get notified when daily profit is credited</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" name="email_on_profit" {% if prefs.email_on_profit %}checked{% endif %}>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            
+            <div class="pref-item">
+                <div class="pref-info">
+                    <div class="pref-label">KYC Status Updates</div>
+                    <div class="pref-description">Get notified about KYC verification status changes</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" name="email_on_kyc" {% if prefs.email_on_kyc %}checked{% endif %}>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            
+            <div class="pref-item">
+                <div class="pref-info">
+                    <div class="pref-label">Referral Bonuses</div>
+                    <div class="pref-description">Get notified when someone uses your referral code</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" name="email_on_referral" {% if prefs.email_on_referral %}checked{% endif %}>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            
+            <div class="pref-item">
+                <div class="pref-info">
+                    <div class="pref-label">Security Alerts</div>
+                    <div class="pref-description">Get notified about login attempts and security changes (Recommended)</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" name="email_on_security" {% if prefs.email_on_security %}checked{% endif %}>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+        
+        <!-- Push Notifications -->
+        <div class="prefs-section">
+            <div class="section-header">
+                <span class="section-icon">🔔</span>
+                <h2>Browser Push Notifications</h2>
+            </div>
+            
+            <div class="pref-item">
+                <div class="pref-info">
+                    <div class="pref-label">Enable Push Notifications</div>
+                    <div class="pref-description">Receive real-time notifications in your browser</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" name="push_enabled" {% if prefs.push_enabled %}checked{% endif %}>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            
+            <div class="pref-item">
+                <div class="pref-info">
+                    <div class="pref-label">Deposit Notifications</div>
+                    <div class="pref-description">Push notification when deposit is approved</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" name="push_on_deposit" {% if prefs.push_on_deposit %}checked{% endif %}>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            
+            <div class="pref-item">
+                <div class="pref-info">
+                    <div class="pref-label">Withdrawal Notifications</div>
+                    <div class="pref-description">Push notification when withdrawal is processed</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" name="push_on_withdrawal" {% if prefs.push_on_withdrawal %}checked{% endif %}>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            
+            <div class="pref-item">
+                <div class="pref-info">
+                    <div class="pref-label">Investment Notifications</div>
+                    <div class="pref-description">Push notification for new investments</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" name="push_on_investment" {% if prefs.push_on_investment %}checked{% endif %}>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            
+            <div class="pref-item">
+                <div class="pref-info">
+                    <div class="pref-label">Profit Notifications</div>
+                    <div class="pref-description">Push notification for daily profit</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" name="push_on_profit" {% if prefs.push_on_profit %}checked{% endif %}>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            
+            <div class="pref-item">
+                <div class="pref-info">
+                    <div class="pref-label">KYC Notifications</div>
+                    <div class="pref-description">Push notification for KYC status updates</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" name="push_on_kyc" {% if prefs.push_on_kyc %}checked{% endif %}>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            
+            <div class="pref-item">
+                <div class="pref-info">
+                    <div class="pref-label">Referral Notifications</div>
+                    <div class="pref-description">Push notification for new referrals</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" name="push_on_referral" {% if prefs.push_on_referral %}checked{% endif %}>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            
+            <div class="info-badge">
+                💡 Enable browser notifications for instant alerts even when you're not on the site
+            </div>
+        </div>
+        
+        <!-- SMS Notifications -->
+        <div class="prefs-section">
+            <div class="section-header">
+                <span class="section-icon">📱</span>
+                <h2>SMS Notifications (Coming Soon)</h2>
+            </div>
+            
+            <div class="pref-item">
+                <div class="pref-info">
+                    <div class="pref-label">Enable SMS Notifications</div>
+                    <div class="pref-description">Receive SMS for critical transactions</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" name="sms_enabled" {% if prefs.sms_enabled %}checked{% endif %}>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            
+            <div class="pref-item">
+                <div class="pref-info">
+                    <div class="pref-label">Deposit SMS</div>
+                    <div class="pref-description">SMS when deposit is approved</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" name="sms_on_deposit" {% if prefs.sms_on_deposit %}checked{% endif %}>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            
+            <div class="pref-item">
+                <div class="pref-info">
+                    <div class="pref-label">Withdrawal SMS</div>
+                    <div class="pref-description">SMS when withdrawal is processed</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" name="sms_on_withdrawal" {% if prefs.sms_on_withdrawal %}checked{% endif %}>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            
+            <div class="pref-item">
+                <div class="pref-info">
+                    <div class="pref-label">Security SMS</div>
+                    <div class="pref-description">SMS for security alerts (Highly Recommended)</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" name="sms_on_security" {% if prefs.sms_on_security %}checked{% endif %}>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+        
+        <!-- Other Preferences -->
+        <div class="prefs-section">
+            <div class="section-header">
+                <span class="section-icon">⚙️</span>
+                <h2>Other Preferences</h2>
+            </div>
+            
+            <div class="pref-item">
+                <div class="pref-info">
+                    <div class="pref-label">Notification Sounds</div>
+                    <div class="pref-description">Play sound when new notification arrives</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" name="sound_enabled" {% if prefs.sound_enabled %}checked{% endif %}>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            
+            <div class="pref-item">
+                <div class="pref-info">
+                    <div class="pref-label">Daily Digest Email</div>
+                    <div class="pref-description">Receive daily summary of your activities</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" name="daily_digest" {% if prefs.daily_digest %}checked{% endif %}>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            
+            <div class="pref-item">
+                <div class="pref-info">
+                    <div class="pref-label">Weekly Digest Email</div>
+                    <div class="pref-description">Receive weekly summary of your portfolio performance</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" name="weekly_digest" {% if prefs.weekly_digest %}checked{% endif %}>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            
+            <div class="pref-item">
+                <div class="pref-info">
+                    <div class="pref-label">Promotional Emails</div>
+                    <div class="pref-description">Receive news about new features and special offers</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" name="marketing_emails" {% if prefs.marketing_emails %}checked{% endif %}>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+        
+        <button type="submit" class="save-button">
+            💾 Save Preferences
+        </button>
+    </form>
+</div>
+
+<script>
+document.getElementById('preferencesForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    fetch('{% url "notifications:preferences" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message
+            document.getElementById('successMessage').classList.add('show');
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                document.getElementById('successMessage').classList.remove('show');
+            }, 3000);
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to save preferences. Please try again.');
+    });
+});
+</script>
+{% endblock %}
