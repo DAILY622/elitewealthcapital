@@ -10,6 +10,7 @@ from django.http import HttpResponse
 from dashboard import views as dashboard_views
 from investments.admin_api import verify_deposit_from_email, reject_deposit_from_email
 from kyc.admin_api import verify_kyc_from_email, reject_kyc_from_email
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 import os
 
 # PWA file serving views
@@ -73,6 +74,11 @@ urlpatterns = [
          verify_kyc_from_email, name='verify_kyc_email'),
     path('admin-api/kyc/<int:kyc_id>/reject/<str:token>/', 
          reject_kyc_from_email, name='reject_kyc_email'),
+    
+    # API Documentation - Swagger/OpenAPI
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
     
     # Homepage
     path('', dashboard_views.home, name='home'),

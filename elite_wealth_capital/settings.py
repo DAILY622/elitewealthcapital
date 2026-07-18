@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'django_celery_results',
     'django_ratelimit',
     'storages',  # Django-storages for R2/S3
+    'drf_spectacular',  # API Documentation
     
     # Local Apps
     'accounts',
@@ -224,6 +225,27 @@ CLOUDFLARE_WORKER_URL = os.getenv('CLOUDFLARE_WORKER_URL', '')
 
 # Silence ratelimit cache warnings for development (use Redis in production)
 SILENCED_SYSTEM_CHECKS = ['django_ratelimit.E003', 'django_ratelimit.W001']
+
+# API Documentation - Swagger/OpenAPI Configuration
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Elite Wealth Capital API',
+    'DESCRIPTION': 'API documentation for Elite Wealth Capital investment platform',
+    'VERSION': '1.0.0',
+    'SERVE_PERMISSIONS': ['rest_framework.permissions.IsAuthenticated'],
+    'CONTACT': {'name': 'Elite Wealth Capital', 'email': 'api@elitewealthcapita.uk'},
+    'LICENSE': {'name': 'Commercial License'},
+    'TAGS': [
+        {'name': 'Investments', 'description': 'Investment management endpoints'},
+        {'name': 'KYC', 'description': 'KYC verification endpoints'},
+        {'name': 'Cards', 'description': 'Virtual card management endpoints'},
+        {'name': 'Deposits', 'description': 'Deposit and withdrawal endpoints'},
+        {'name': 'Loans', 'description': 'Loan management endpoints'},
+    ],
+    'SERVERS': [
+        {'url': 'https://elitewealthcapita.uk', 'description': 'Production'},
+        {'url': 'http://localhost:8000', 'description': 'Development'},
+    ],
+}
 
 # Celery Configuration
 CELERY_BROKER_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
