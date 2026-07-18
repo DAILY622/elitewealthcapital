@@ -1,0 +1,63 @@
+name = "elite-wealth-worker"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+account_id = "31277d24f8b9b001c73c1a3e2866fd0e"
+
+# KV Namespace for caching
+[[kv_namespaces]]
+binding = "ELITE_CACHE"
+id = "f07a1dcce7964a1db6b237b7eaef7855"
+
+# D1 Database for portfolios
+[[d1_databases]]
+binding = "DB"
+database_name = "elite-portfolios"
+database_id = "b1def3c7-610f-4284-b104-8dad5eea2f07"
+
+# Workers AI binding
+[ai]
+binding = "AI"
+
+# Queues for background task processing
+[[queues.producers]]
+queue = "elite-notifications"
+binding = "NOTIFICATION_QUEUE"
+
+[[queues.consumers]]
+queue = "elite-notifications"
+max_batch_size = 10
+max_batch_timeout = 30
+
+# Durable Objects for real-time features
+[[durable_objects.bindings]]
+name = "PRICE_TICKER"
+class_name = "PriceTicker"
+
+[[durable_objects.bindings]]
+name = "NOTIFICATION_ROOM"
+class_name = "NotificationRoom"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["PriceTicker", "NotificationRoom"]
+
+# Workflows for multi-step processes (comment out for now - paid feature)
+# [[workflows]]
+# name = "investment-lifecycle"
+# binding = "INVESTMENT_WORKFLOW"
+# class_name = "InvestmentLifecycle"
+
+# [[workflows]]
+# name = "withdrawal-process"
+# binding = "WITHDRAWAL_WORKFLOW"
+# class_name = "WithdrawalProcess"
+
+# Environment variables
+[vars]
+ALLOWED_ORIGINS = "https://portal.elitewealthcapita.uk,https://elitewealthcapital.onrender.com"
+CACHE_TTL = "60"  # Cache TTL in seconds
+
+# Routes (optional - for custom domain)
+# routes = [
+#   { pattern = "api.elitewealthcapita.uk/*", zone_name = "elitewealthcapita.uk" }
+# ]
