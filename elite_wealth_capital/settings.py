@@ -219,6 +219,9 @@ CACHES = {
 RATELIMIT_USE_CACHE = 'default'
 RATELIMIT_FAIL_OPEN = True  # Don't block if cache is unavailable
 
+# Cloudflare Worker Configuration
+CLOUDFLARE_WORKER_URL = os.getenv('CLOUDFLARE_WORKER_URL', '')
+
 # Silence ratelimit cache warnings for development (use Redis in production)
 SILENCED_SYSTEM_CHECKS = ['django_ratelimit.E003', 'django_ratelimit.W001']
 
